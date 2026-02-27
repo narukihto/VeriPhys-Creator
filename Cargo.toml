@@ -33,3 +33,6 @@ opt-level = 3
 lto = true
 codegen-units = 1
 panic = 'abort'
+[[bin]]
+name = "veriphys-protocol-core"
+path = "src/main.rs" # تأكد أن هذا المسار يؤدي لملف الكود الرئيسي
