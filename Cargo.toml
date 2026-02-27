@@ -1,7 +1,7 @@
 [package]
 name = "veriphys-protocol-core"
 version = "1.0.0"  
-authors = ["Yatoshingami"]
+authors = ["narukihto"]
 edition = "2021"
 description = "Final: Protocol Infrastructure Complete - Secure Asset Anchoring Engine"
 
