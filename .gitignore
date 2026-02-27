@@ -1,0 +1,43 @@
+# --- Rust Specific ---
+# Build artifacts and compiled files
+/target/
+debug/
+release/
+*.pdb
+**/*.rs.bk
+**/mutants.out*/
+
+# --- Node.js & Hardhat (Blockchain) ---
+# Dependencies and compiled contract artifacts
+node_modules/
+/artifacts/
+/cache/
+/typechain/
+/typechain-types/
+/coverage/
+coverage.json
+
+# --- Security & Credentials (CRITICAL) ---
+# Never commit private keys or API keys to GitHub
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+/keys/
+
+# --- IDEs & System Files ---
+# JetBrains (RustRover, IntelliJ)
+.idea/
+*.iml
+# VS Code
+.vscode/
+# OS Specific
+.DS_Store
+Thumbs.db
+
+# --- VeriPhys Protocol Specific ---
+# Local database/logs generated during runtime
+registry.txt

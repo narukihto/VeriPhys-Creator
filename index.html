@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriPhys Protocol | Quantum-Safe Ledger</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --bg: #050b18;
+            --card-bg: #0d1626;
+            --text: #e2e8f0;
+            --accent: #00ff88;
+            --danger: #ff4b2b;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: radial-gradient(circle at center, #10213e 0%, var(--bg) 100%);
+            color: var(--text);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container { width: 100%; max-width: 900px; }
+
+        .card {
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        h1 { 
+            font-size: 2.5rem; margin-bottom: 0.5rem; font-weight: 700;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        p { color: #94a3b8; font-size: 1.1rem; margin-bottom: 2.5rem; }
+
+        .upload-section {
+            border: 2px dashed var(--border);
+            padding: 4rem 2rem;
+            border-radius: 1.5rem;
+            cursor: pointer;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.02);
+            display: block;
+            margin-bottom: 2rem;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary);
+            background: rgba(0, 210, 255, 0.05);
+            transform: scale(1.02);
+        }
+
+        .hash-display {
+            background: #020617;
+            padding: 1.2rem;
+            border-radius: 1rem;
+            word-break: break-all;
+            font-family: 'Fira Code', monospace;
+            color: var(--accent);
+            border: 1px solid var(--border);
+            margin: 15px 0;
+            font-size: 0.9rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 210, 255, 0.3);
+        }
+
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0, 210, 255, 0.4); }
+
+        .ledger-table {
+            width: 100%; border-collapse: collapse; margin-top: 1.5rem;
+        }
+
+        .ledger-table th {
+            text-align: left; padding: 1.2rem; color: var(--primary);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .ledger-table td {
+            padding: 1.2rem; border-bottom: 1px solid var(--border);
+            font-size: 0.9rem; color: #cbd5e1;
+        }
+
+        .status-badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold;
+            background: rgba(0, 255, 136, 0.1); color: var(--accent);
+        }
+
+        #result-area { display: none; animation: slideIn 0.6s ease-out; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h1>🛡️ VeriPhys Protocol</h1>
+        <p>Next-Gen Quantum-Resistant Asset Verification</p>
+
+        <label class="upload-section" id="dropZone">
+            <span style="font-size: 3rem;">📄</span><br><br>
+            <span>Drag & Drop File to <strong>Anchor on Blockchain</strong></span>
+            <input type="file" id="fileInput" hidden>
+        </label>
+
+        <div id="result-area">
+            <div class="hash-display" id="hashValue"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <span id="timeValue" style="font-size: 0.8rem; color: #64748b;"></span>
+                <span class="status-badge">ON-CHAIN SECURED</span>
+            </div>
+            <a id="downloadBtn" class="btn btn-primary">Download Crypto-Certificate</a>
+            <p style="text-align: center; margin-top: 15px;">
+                <a id="explorerBtn" href="#" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 0.8rem;">View Transaction on Explorer ↗</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📊 Global Registry Ledger</h2>
+        <div style="overflow-x: auto;">
+            <table class="ledger-table">
+                <thead>
+                    <tr>
+                        <th>Asset Name</th>
+                        <th>SHA3 Fingerprint</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="registryTable">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const resultArea = document.getElementById('result-area');
+    const hashValue = document.getElementById('hashValue');
+    const timeValue = document.getElementById('timeValue');
+    const explorerBtn = document.getElementById('explorerBtn');
+
+    fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Show loading state
+        document.getElementById('dropZone').style.opacity = "0.5";
+        
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('http://127.0.0.1:3000/v1/anchor', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.status === "Success") {
+                hashValue.innerText = "SHA3: " + result.content_hash;
+                timeValue.innerText = "Validated at: " + new Date().toLocaleString();
+                explorerBtn.href = "https://sepolia.etherscan.io/tx/" + result.tx_hash;
+                
+                resultArea.style.display = 'block';
+                document.getElementById('dropZone').style.display = "none";
+                
+                // Certificate Creation
+                const certData = `VERIPHYS PROTOCOL CERTIFICATE\n==========================\nAsset: ${file.name}\nHash: ${result.content_hash}\nTx: ${result.tx_hash}\nDate: ${new Date().toISOString()}`;
+                const blob = new Blob([certData], {type: 'text/plain'});
+                const url = window.URL.createObjectURL(blob);
+                const a = document.getElementById('downloadBtn');
+                a.href = url;
+                a.download = `Certificate_${file.name}.txt`;
+
+                loadRegistry();
+            }
+        } catch (err) {
+            alert("Connection Error: Is the Rust engine running?");
+        }
+    });
+
+    async function loadRegistry() {
+        const resp = await fetch('http://127.0.0.1:3000/v1/registry');
+        const data = await resp.json();
+        const tbody = document.getElementById('registryTable');
+        tbody.innerHTML = data.map(r => `
+            <tr>
+                <td>${r.file_name}</td>
+                <td style="font-family: monospace; color: var(--accent);">${r.file_hash.substring(0, 16)}...</td>
+                <td><span class="status-badge">VERIFIED</span></td>
+            </tr>
+        `).join('');
+    }
+
+    window.onload = loadRegistry;
+</script>
+</body>
+</html>
