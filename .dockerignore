@@ -1,0 +1,24 @@
+# Ignore local build artifacts
+target/
+
+# Ignore source control
+.git
+.gitignore
+
+# Ignore environment secrets (Crucial for security!)
+.env
+*.pem
+*.key
+
+# Ignore local documentation and logs
+docs/
+*.log
+
+# Ignore IDE settings
+.vscode/
+.idea/
+
+# Ignore Docker files themselves
+Dockerfile
+docker-compose.yml
+.dockerignore
