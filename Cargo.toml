@@ -23,12 +23,11 @@ hex = "0.4"
 ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
 
 [patch.crates-io]
-# FIXED: Using 'branch = "main"' ensures we find the source.
-# This satisfies the "different source" requirement and includes the AES fix.
+# FIXED: Using 'branch' resolves the source conflict and handles the AES fix
 ring = { git = "https://github.com/briansmith/ring", branch = "main" }
 
-# Addressing the unmaintained warning for rustls-pemfile
-rustls-pemfile = { version = "2.1.0" }
+# FIXED: Added '=' and updated to 2.2.0 to resolve the "more than one candidate" error
+rustls-pemfile = { version = "=2.2.0" }
 
 [profile.release]
 opt-level = 3
