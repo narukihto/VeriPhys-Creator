@@ -6,11 +6,11 @@ npx hardhat node
 
 # Deploy the contract
 npx hardhat run scripts/deploy.js --network localhost
-Save the generated CONTRACT_ADDRESS.3. Environment Configuration (.env)Create a .env file in the root directory:مقتطف الرمزSERVER_PORT=3000
+Save the generated CONTRACT_ADDRESS.3. Environment Configuration (.env)Create a .env file in the root directory SERVER_PORT=3000
 REGISTRY_PATH=registry.txt
 RPC_URL=http://127.0.0.1:8545
 CONTRACT_ADDRESS=0xYourContractAddressHere
 PRIVATE_KEY=0xYourLocalPrivateKey
 4. Launching the Rust EngineBash# Build and run with max optimization
 cargo run --release
-📂 Project ResourcesTechnical Whitepaper: Located in /docs/Technical-Whitepaper.pdf (Mathematical foundations & Use cases).UI Dashboard: Open index.html in any browser for the drag-and-drop interface.📄 VeriPhys Protocol - Proprietary LicenseCopyright (c) 2024 [Yatoshingami] - ALL RIGHTS RESERVED.Grant of License: This license is granted strictly to the Authorized Purchaser.Restrictions: No part of this software may be reproduced, redistributed, or sold to third parties without written consent. The purchaser may not make this repository public.Usage: The purchaser has the right to use, modify, and deploy the software for commercial or private operations.No Warranty: The software is provided "as is", without warranty of any kind.
+📂 Project ResourcesTechnical Whitepaper: Located in /docs/Technical-Whitepaper.pdf (Mathematical foundations & Use cases).UI Dashboard: Open index.html in any browser for the drag-and-drop interface.📄 VeriPhys Protocol - Proprietary LicenseCopyright (c) 2024 [] - ALL RIGHTS RESERVED.Grant of License: This license is granted strictly to the Authorized Purchaser.Restrictions: No part of this software may be reproduced, redistributed, or sold to third parties without written consent. The purchaser may not make this repository public.Usage: The purchaser has the right to use, modify, and deploy the software for commercial or private operations.No Warranty: The software is provided "as is", without warranty of any kind.
