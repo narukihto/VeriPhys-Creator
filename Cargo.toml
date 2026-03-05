@@ -22,12 +22,14 @@ hex = "0.4"
 # Blockchain with Rustls
 ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
 
-[patch.crates-io]
-# FIXED: Using 'branch' resolves the source conflict and handles the AES fix
-ring = { git = "https://github.com/briansmith/ring", branch = "main" }
+# By adding this as a direct dependency, we force the tree to use 2.2.0
+# and resolve the "unmaintained" warning without a patch conflict.
+rustls-pemfile = "2.2.0"
 
-# FIXED: Added '=' and updated to 2.2.0 to resolve the "more than one candidate" error
-rustls-pemfile = { version = "=2.2.0" }
+[patch.crates-io]
+# This remains a Git patch to avoid the "same source" error for ring
+# and resolve the AES security vulnerability.
+ring = { git = "https://github.com/briansmith/ring", branch = "main" }
 
 [profile.release]
 opt-level = 3
