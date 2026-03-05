@@ -23,13 +23,13 @@ hex = "0.4"
 # Note: ethers 2.0.14 is legacy but we are forcing it to be secure via patches
 ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
 
-# Direct dependency for better version unification
-ring = "0.17.13"
+# Direct dependency - Updated to the latest secure version
+ring = "0.17.14"
 
 [patch.crates-io]
 # Forced override for all sub-dependencies (including ethers and jsonwebtoken)
-# This specifically addresses RUSTSEC-2025-0009
-ring = { version = "0.17.13" }
+# Using '=' to resolve the "more than one candidate" ambiguity in CI/CD
+ring = { version = "=0.17.14" }
 
 # Addressing the unmaintained warning for rustls-pemfile
 rustls-pemfile = { version = "2.1.0" }
