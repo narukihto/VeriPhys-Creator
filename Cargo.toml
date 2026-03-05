@@ -1,42 +1,38 @@
 [package]
 name = "veriphys-protocol-core"
 version = "1.0.0"
+authors = ["narukihto"]
 edition = "2021"
 
 [dependencies]
-# Web Stack
+# Modern Async & Web stack
 axum = { version = "0.7.9", features = ["multipart"] }
 tokio = { version = "1.36", features = ["full"] }
 tower-http = { version = "0.5.2", features = ["cors", "limit"] }
 
-# Serialization & Env
+# Environment & Serialization
 dotenvy = "0.15.7"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
-# Cryptography
+# Cryptography (FIPS 202)
 sha3 = "0.10.8"
 hex = "0.4"
 
-# Blockchain - We use the latest sub-patch of v2
-# We explicitly force rustls v12 compatibility to avoid rustls-pemfile v1 issues
+# Blockchain with Rustls to avoid native-tls/ring conflicts
+# Note: ethers 2.0.14 is legacy but we are forcing it to be secure via patches
 ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
 
-# Forcing the modern ring version in the direct tree
+# Direct dependency for better version unification
 ring = "0.17.13"
 
 [patch.crates-io]
-# 1. Fix the AES Panic and Unmaintained Ring (Critical)
-# We point to the crates.io version which is now updated to fix the AES panic
+# Forced override for all sub-dependencies (including ethers and jsonwebtoken)
+# This specifically addresses RUSTSEC-2025-0009
 ring = { version = "0.17.13" }
 
-# 2. Fix rustls-pemfile unmaintained warning
-# Forces dependencies using v1.x to move to the maintained v2.x logic
+# Addressing the unmaintained warning for rustls-pemfile
 rustls-pemfile = { version = "2.1.0" }
-
-# 3. Handle fxhash unmaintained warning (if building for high-security environments)
-# This replaces the unmaintained fxhash with a modern equivalent if compatible
-# fxhash = { git = "https://github.com/rust-lang/rustc-hash" }
 
 [profile.release]
 opt-level = 3
