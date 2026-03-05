@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # 🛡️ THE CORE ENGINE (Rust Backend)
+  veriphys-engine:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: veriphys_core
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    env_file:
+      - .env
+    volumes:
+      - ./registry.txt:/app/registry.txt
+    restart: always
+    networks:
+      - veriphys_network
+
+  # 🖥️ THE PROTOCOL PORTAL (Nginx Frontend)
+  veriphys-ui:
+    image: nginx:alpine
+    container_name: veriphys_portal
+    ports:
+      - "80:80"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html
+    depends_on:
+      - veriphys-engine
+    restart: always
+    networks:
+      - veriphys_network
+
+networks:
+  veriphys_network:
+    driver: bridge
