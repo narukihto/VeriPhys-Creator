@@ -2,22 +2,32 @@ version: '3.8'
 
 services:
   # 🛡️ THE CORE ENGINE (Rust Backend)
+  # Optimized for high-throughput SHA3-256 anchoring
   veriphys-engine:
     build: 
       context: .
       dockerfile: Dockerfile
     container_name: veriphys_core
+    expose:
+      - "3000"
     ports:
       - "${SERVER_PORT:-3000}:3000"
     env_file:
       - .env
     volumes:
       - ./registry.txt:/app/registry.txt
+    # Healthcheck ensures the Axum server is responding before other services connect
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/v1/stats"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: always
     networks:
       - veriphys_network
 
   # 🖥️ THE PROTOCOL PORTAL (Nginx Frontend)
+  # Serves the English portal and proxies requests to the Rust engine
   veriphys-ui:
     image: nginx:alpine
     container_name: veriphys_portal
@@ -26,7 +36,8 @@ services:
     volumes:
       - ./index.html:/usr/share/nginx/html/index.html
     depends_on:
-      - veriphys-engine
+      veriphys-engine:
+        condition: service_healthy
     restart: always
     networks:
       - veriphys_network
