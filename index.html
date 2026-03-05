@@ -32,7 +32,6 @@
             padding: 40px 20px;
         }
 
-        /* --- Interactive Background Background --- */
         #canvas-bg {
             position: fixed;
             top: 0; left: 0;
@@ -43,7 +42,6 @@
 
         .container { width: 100%; max-width: 1100px; z-index: 2; }
 
-        /* --- Header Styling --- */
         .header { text-align: center; margin-bottom: 4rem; animation: fadeInDown 1s ease; }
         .header h1 {
             font-size: 4rem; margin: 0; font-weight: 700; letter-spacing: -3px;
@@ -53,7 +51,6 @@
         }
         .header p { color: var(--primary); letter-spacing: 6px; font-weight: 500; font-size: 0.9rem; margin-top: 10px; }
 
-        /* --- Main Logic Cards --- */
         .glass-card {
             background: var(--card-bg);
             backdrop-filter: blur(25px);
@@ -66,12 +63,6 @@
             overflow: hidden;
         }
 
-        .glass-card::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-            background: linear-gradient(90deg, transparent, var(--primary), var(--accent), transparent);
-        }
-
-        /* --- Advanced Upload Zone --- */
         .drop-zone {
             border: 2px dashed var(--border);
             border-radius: 2rem;
@@ -91,7 +82,6 @@
 
         .drop-icon { font-size: 5rem; display: block; margin-bottom: 1.5rem; filter: drop-shadow(0 0 15px var(--primary)); }
 
-        /* --- Result & Hash Display --- */
         #result-area { display: none; animation: slideUp 0.8s ease; }
 
         .hash-box {
@@ -102,13 +92,11 @@
             border-left: 5px solid var(--accent);
             margin: 2rem 0;
             word-break: break-all;
-            position: relative;
         }
 
         .hash-label { color: #64748b; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 10px; display: block; }
         .hash-text { color: var(--accent); font-size: 1.1rem; }
 
-        /* --- Buttons --- */
         .btn {
             display: inline-block; width: 100%; padding: 1.3rem; border-radius: 1.2rem;
             text-align: center; font-weight: 800; text-decoration: none; font-size: 1rem;
@@ -120,7 +108,6 @@
         }
         .btn-main:hover { transform: translateY(-3px); filter: brightness(1.1); }
 
-        /* --- Global Ledger Table --- */
         .ledger-wrapper { overflow-x: auto; }
         .ledger-table { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
         .ledger-table th { color: #64748b; font-size: 0.8rem; text-transform: uppercase; padding: 1rem; text-align: left; }
@@ -130,7 +117,6 @@
 
         .badge { background: rgba(0, 255, 136, 0.15); color: var(--accent); padding: 6px 16px; border-radius: 50px; font-size: 0.75rem; font-weight: 900; }
 
-        /* --- Animations --- */
         @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .spin { animation: spin 2s linear infinite; display: inline-block; }
@@ -169,6 +155,8 @@
             
             <div style="text-align: center; margin-top: 2rem;">
                 <a id="explorerBtn" href="#" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 700; font-size: 0.85rem;">VIEW TRANSACTION ON ETHERSCAN ↗</a>
+                <br><br>
+                <button onclick="location.reload()" style="background:none; border:none; color:#64748b; cursor:pointer; font-family:inherit;">← Anchor Another File</button>
             </div>
         </div>
     </div>
@@ -190,8 +178,6 @@
         </div>
     </div>
 </div>
-
-
 
 <script>
     // --- PARTICLE BACKGROUND ENGINE ---
@@ -234,45 +220,42 @@
     const fileInput = document.getElementById('fileInput');
     const dropZone = document.getElementById('dropZone');
     const resultArea = document.getElementById('result-area');
+    const BASE_URL = 'http://localhost:3000/v1'; // Standard development port
 
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Visual Loading State
-        dropZone.innerHTML = `<span class="drop-icon spin">⚙️</span><h3 style="margin:0;">Anchoring Asset...</h3><p>Verifying Physical Physics & Broadcasting to Ledger</p>`;
+        const originalHTML = dropZone.innerHTML;
+        dropZone.innerHTML = `<span class="drop-icon spin">⚙️</span><h3 style="margin:0;">Anchoring Asset...</h3><p>Verifying SHA3-256 Integrity & Broadcasting to Ledger</p>`;
         
         const formData = new FormData();
         formData.append('file', file);
 
         try {
-            const response = await fetch('http://127.0.0.1:3000/v1/anchor', {
+            const response = await fetch(`${BASE_URL}/anchor`, {
                 method: 'POST',
                 body: formData
             });
+
+            if (response.status === 409) {
+                alert("PROTOCOL CONFLICT: This file hash is already secured in the blockchain registry.");
+                location.reload();
+                return;
+            }
+
             const result = await response.json();
 
             if (result.status === "Success") {
                 document.getElementById('hashValue').innerText = result.content_hash;
-                document.getElementById('timeValue').innerText = `ANCHORED: ${new Date().toLocaleString()}`;
+                document.getElementById('timeValue').innerText = `SECURED: ${new Date().toLocaleString()}`;
                 document.getElementById('explorerBtn').href = `https://sepolia.etherscan.io/tx/${result.tx_hash}`;
                 
                 resultArea.style.display = 'block';
                 dropZone.style.display = "none";
 
-                // Generate Dynamic Certificate File
-                const certContent = `
-VERIPHYS PROTOCOL - OFFICIAL AUTHENTICITY CERTIFICATE
-=====================================================
-ASSET NAME: ${file.name}
-SHA3-256 FINGERPRINT: ${result.content_hash}
-BLOCKCHAIN TX HASH: ${result.tx_hash}
-LEDGER STATUS: IMMUTABLE & SECURED
-TIMESTAMP (UTC): ${new Date().toISOString()}
-=====================================================
-This document serves as proof that the digital asset's 
-integrity was anchored at the block height specified.
-`;
+                // Certificate Generation Logic
+                const certContent = `VERIPHYS PROTOCOL - OFFICIAL AUTHENTICITY CERTIFICATE\n=====================================================\nASSET NAME: ${file.name}\nSHA3-256 HASH: ${result.content_hash}\nBLOCKCHAIN TX: ${result.tx_hash}\n=====================================================\nTIMESTAMP (UTC): ${new Date().toISOString()}`;
                 const blob = new Blob([certContent], {type: 'text/plain'});
                 const url = window.URL.createObjectURL(blob);
                 const dBtn = document.getElementById('downloadBtn');
@@ -281,24 +264,26 @@ integrity was anchored at the block height specified.
                 loadRegistry();
             }
         } catch (err) {
-            alert("PROTOCOL ERROR: Core Engine is Offline. Please start the Rust server.");
-            location.reload();
+            console.error(err);
+            alert("ENGINE OFFLINE: Ensure the Rust backend is running at http://localhost:3000");
+            dropZone.innerHTML = originalHTML;
         }
     });
 
     async function loadRegistry() {
         try {
-            const resp = await fetch('http://127.0.0.1:3000/v1/registry');
+            const resp = await fetch(`${BASE_URL}/registry`);
             const data = await resp.json();
             document.getElementById('registryTable').innerHTML = data.map(r => `
                 <tr>
                     <td>${r.file_name}</td>
-                    <td style="font-family:'Fira Code'; color:var(--primary); font-size:0.8rem;">${r.file_hash.substring(0,30)}...</td>
-                    <td><span class="badge">VALIDATED</span></td>
+                    <td style="font-family:'Fira Code'; color:var(--primary); font-size:0.85rem;">${r.file_hash.substring(0,32)}...</td>
+                    <td><span class="badge">VERIFIED</span></td>
                 </tr>
             `).join('');
-        } catch (e) { console.warn("Registry load failed - Check API status."); }
+        } catch (e) { console.warn("Registry sync failed."); }
     }
+    
     window.onload = loadRegistry;
 </script>
 </body>
