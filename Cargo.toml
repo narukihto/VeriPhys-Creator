@@ -6,26 +6,27 @@ edition = "2021"
 description = "VeriPhys Protocol: Secure SHA3-256 Asset Anchoring Engine"
 
 [dependencies]
-# --- Networking & API Framework ---
-# Added 'macros' to tokio for #[tokio::main]
-axum = { version = "0.7", features = ["multipart"] }
-tokio = { version = "1.0", features = ["full", "macros", "fs"] } 
-tower-http = { version = "0.5", features = ["cors"] }
-
-# --- Data Serialization & Environment ---
+# --- Web & Async Core ---
+axum = "0.7.9" 
+tokio = { version = "1.36", features = ["full"] }
+tower-http = { version = "0.5.2", features = ["cors"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-dotenv = "0.15"
+multipart = "0.18"
+
+# --- SECURITY FIXES ---
+# Swap 'dotenv' (unmaintained) with 'dotenvy'
+dotenvy = "0.15.7"
 
 # --- Blockchain & Cryptography ---
-# Added 'hex' features to ethers for smoother byte handling
-ethers = { version = "2.0", features = ["rustls", "abigen"] }
-sha3 = "0.10"
+# Merged ethers entries: 'rustls' helps bypass older 'ring' vulnerabilities
+ethers = { version = "2.0.14", features = ["rustls", "abigen"] }
+sha3 = "0.10.8"
 hex = "0.4"
 eyre = "0.6"
 
 [profile.release]
-# Level 3 optimization for high-performance hashing and verification
+# Level 3 optimization for industrial-grade hashing performance
 opt-level = 3
 lto = true
 codegen-units = 1
