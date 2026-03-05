@@ -20,15 +20,14 @@ sha3 = "0.10.8"
 hex = "0.4"
 
 # Blockchain with Rustls to avoid native-tls/ring conflicts
-# Note: ethers 2.0.14 is legacy but we are forcing it to be secure via patches
 ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
 
-# Direct dependency - Updated to the latest secure version
-ring = "0.17.14"
+# Security fix: Unified direct dependency
+ring = "=0.17.14"
 
 [patch.crates-io]
-# Forced override for all sub-dependencies (including ethers and jsonwebtoken)
-# Using '=' to resolve the "more than one candidate" ambiguity in CI/CD
+# Forced override with '=' to resolve the "more than one candidate" ambiguity
+# This fixes RUSTSEC-2025-0009 and the build error in GitHub Actions
 ring = { version = "=0.17.14" }
 
 # Addressing the unmaintained warning for rustls-pemfile
