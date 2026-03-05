@@ -5,23 +5,30 @@ authors = ["narukihto"]
 edition = "2021"
 
 [dependencies]
+# Modern Async & Web stack
 axum = { version = "0.7.9", features = ["multipart"] }
 tokio = { version = "1.36", features = ["full"] }
 tower-http = { version = "0.5.2", features = ["cors", "limit"] }
+
+# Environment & Serialization
 dotenvy = "0.15.7"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+# Cryptography
 sha3 = "0.10.8"
 hex = "0.4"
+
+# Blockchain with Rustls
 ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
 rustls-pemfile = "2.2.0"
 
 [patch.crates-io]
-# NUCLEAR PATCH: This syntax forces all crates looking for 0.16.20 
-# (like jsonwebtoken) to use the patched main branch from GitHub.
+# This forces jsonwebtoken and ethers to use the patched Git version 
+# instead of the vulnerable 0.16.20 version.
 "ring:0.16.20" = { git = "https://github.com/briansmith/ring", branch = "main" }
 
-# Also force any legacy 1.x pemfile users to version 2.x
+# This forces all sub-dependencies to upgrade from the unmaintained 1.x version
 "rustls-pemfile:1.0.4" = { version = "2.2.0" }
 
 [profile.release]
