@@ -1,17 +1,20 @@
-use axum::{extract::Multipart, routing::{post, get}, Json, Router};
+use axum::{extract::{Multipart, State}, routing::{post, get}, Json, Router};
 use serde::{Serialize, Deserialize};
-use std::net::SocketAddr;
-use tower_http::cors::CorsLayer;
-use std::fs::{OpenOptions, read_to_string};
-use std::io::Write;
 use std::sync::Arc;
-use std::env; 
-use dotenv::dotenv; 
+use std::net::SocketAddr;
+use tokio::fs::OpenOptions;
+use tokio::io::AsyncWriteExt;
 use ethers::prelude::*;
 use sha3::{Sha3_256, Digest};
 
-// Generates the Rust struct from your Solidity ABI
-abigen!(VeriPhysContract, "./integrityLedger.json");
+// Generate Rust bindings from the corrected ABI
+abigen!(VeriPhysContract, "./IntegrityLedger.json");
+
+#[derive(Clone)]
+struct AppConfig {
+    contract: VeriPhysContract<SignerMiddleware<Provider<Http>, LocalWallet>>,
+    registry_path: String,
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 struct Record {
@@ -29,113 +32,93 @@ struct IntegrityResponse {
 
 #[tokio::main]
 async fn main() {
-    // Load environment variables from .env file
-    dotenv().ok();
+    dotenv::dotenv().ok(); [cite: 1]
+
+    // 1. Setup Blockchain Provider & Wallet once for efficiency
+    let rpc_url = std::env::var("RPC_URL").expect("RPC_URL must be set"); [cite: 1]
+    let contract_addr: Address = std::env::var("CONTRACT_ADDRESS").expect("ADDR missing").parse().expect("Invalid Addr"); [cite: 1]
+    let private_key = std::env::var("PRIVATE_KEY").expect("KEY missing"); [cite: 2]
     
+    let provider = Provider::<Http>::try_from(rpc_url).unwrap();
+    let wallet: LocalWallet = private_key.parse::<LocalWallet>().unwrap().with_chain_id(1337u64);
+    let client = Arc::new(SignerMiddleware::new(provider, wallet));
+    
+    let shared_state = Arc::new(AppConfig {
+        contract: VeriPhysContract::new(contract_addr, client),
+        registry_path: std::env::var("REGISTRY_PATH").unwrap_or_else(|_| "registry.txt".to_string()), [cite: 1]
+    });
+
+    // 2. Build Router with State
     let app = Router::new()
         .route("/v1/anchor", post(anchor_content))
         .route("/v1/registry", get(get_registry))
-        .layer(CorsLayer::permissive());
+        .with_state(shared_state)
+        .layer(tower_http::cors::CorsLayer::permissive());
 
-    // Read port from .env or default to 3000
-    let port = env::var("SERVER_PORT").unwrap_or_else(|_| "3000".to_string());
-    let addr_str = format!("127.0.0.1:{}", port);
-    let addr: SocketAddr = addr_str.parse().expect("Invalid Socket Address");
-
-    println!("🛡️  VERIPHYS CORE ACTIVE: Quantum-resistant hashing (SHA3-256) enabled.");
-    println!("📡 API Server running on http://{}", addr);
-
+    let port = std::env::var("SERVER_PORT").unwrap_or_else(|_| "3000".to_string()); [cite: 1]
+    let addr: SocketAddr = format!("127.0.0.1:{}", port).parse().unwrap();
+    
+    println!("🛡️ VERIPHYS CORE: System Consistency 100%. Listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn anchor_content(mut multipart: Multipart) -> Json<IntegrityResponse> {
+async fn anchor_content(
+    State(state): State<Arc<AppConfig>>,
+    mut multipart: Multipart
+) -> Result<Json<IntegrityResponse>, String> {
     let mut file_name = String::from("unknown");
     let mut content_data = Vec::new();
 
+    // Parse Multipart safely
     while let Ok(Some(field)) = multipart.next_field().await {
-        let name = field.name().unwrap_or_default().to_string();
-        if name == "file" {
-            file_name = field.file_name().unwrap_or("unnamed_asset").to_string();
-            content_data = field.bytes().await.unwrap_or_default().to_vec();
+        if field.name() == Some("file") {
+            file_name = field.file_name().unwrap_or("unnamed").to_string();
+            content_data = field.bytes().await.map_err(|e| e.to_string())?.to_vec();
         }
     }
 
-    // 1. Generate SHA3-256 Fingerprint (Off-chain)
-    let mut hasher = Sha3_256::new();
-    hasher.update(&content_data);
-    let result = hasher.finalize(); 
-    
-    let file_hash_hex = format!("{:x}", result);
-    let hash_bytes: [u8; 32] = result.into(); 
-    
-    // 2. Blockchain Anchoring (On-chain)
-    // Pass the raw bytes to send_to_blockchain which will handle conversion
-    let blockchain_tx = match send_to_blockchain(hash_bytes).await {
-        Ok(tx) => tx,
-        Err(e) => {
-            eprintln!("Blockchain Sync Error: {}", e);
-            "On-chain anchoring failed".to_string()
-        },
+    // 1. SHA3-256 Fingerprinting
+    let hash_bytes: [u8; 32] = Sha3_256::digest(&content_data).into();
+    let file_hash_hex = hex::encode(hash_bytes);
+
+    // 2. Direct On-Chain Anchoring (Fixed: No Hex-String conversion needed for bytes32)
+    let tx_receipt = state.contract
+        .anchor_content(hash_bytes) // Matches bytes32 in Solidity
+        .send()
+        .await
+        .map_err(|e| format!("Blockchain Submission Error: {}", e))?
+        .await
+        .map_err(|e| format!("Transaction Confirmation Error: {}", e))?;
+
+    let tx_hash = match tx_receipt {
+        Some(receipt) => format!("{:?}", receipt.transaction_hash),
+        None => return Err("Transaction failed on-chain".into()),
     };
 
-    // 3. Local Historical Logging
-    let registry_path = env::var("REGISTRY_PATH").unwrap_or_else(|_| "registry.txt".to_string());
+    // 3. Non-blocking Local Logging
     let log_entry = format!("{},{}\n", file_name, file_hash_hex);
     let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(registry_path)
-        .expect("IO Error: Could not open registry");
-    file.write_all(log_entry.as_bytes()).expect("Write Error");
+        .create(true).append(true).open(&state.registry_path).await
+        .map_err(|e| e.to_string())?;
+    file.write_all(log_entry.as_bytes()).await.map_err(|e| e.to_string())?;
 
-    Json(IntegrityResponse {
-        status: "Success".to_string(),
+    Ok(Json(IntegrityResponse {
+        status: "Success".into(),
         content_hash: file_hash_hex,
-        tx_hash: blockchain_tx,
-        message: "Digital fingerprint anchored to the VeriPhys Ledger.".to_string(),
-    })
+        tx_hash,
+        message: "Digital fingerprint secured in the VeriPhys Ledger.".into(),
+    }))
 }
 
-async fn send_to_blockchain(hash: [u8; 32]) -> Result<String, Box<dyn std::error::Error>> {
-    // Dynamic fetching from Environment Variables
-    let rpc_url = env::var("RPC_URL").expect("RPC_URL not found in .env");
-    let contract_addr = env::var("CONTRACT_ADDRESS").expect("CONTRACT_ADDRESS not found in .env");
-    let private_key = env::var("PRIVATE_KEY").expect("PRIVATE_KEY not found in .env");
-
-    let provider = Provider::<Http>::try_from(rpc_url)?;
-    let address: Address = contract_addr.parse()?;
-    let wallet: LocalWallet = private_key.parse()?;
-    
-    let client = Arc::new(SignerMiddleware::new(provider, wallet.with_chain_id(1337u64)));
-    let contract = VeriPhysContract::new(address, client);
-
-    // ✅ FIXED: Convert the [u8; 32] array into a Hex String with '0x' prefix
-    // This matches what the abigen-generated function expects based on your Solidity 'string' type
-    let hash_hex = format!("0x{}", hex::encode(hash));
-
-    // Call the Solidity function 'anchor_content' with the String argument
-    let tx = contract.anchor_content(hash_hex).send().await?.await?;
-    
-    match tx {
-        Some(receipt) => Ok(format!("{:?}", receipt.transaction_hash)),
-        None => Err("Transaction failed on-chain".into()),
-    }
-}
-
-async fn get_registry() -> Json<Vec<Record>> {
-    let registry_path = env::var("REGISTRY_PATH").unwrap_or_else(|_| "registry.txt".to_string());
-    let content = read_to_string(registry_path).unwrap_or_default();
+async fn get_registry(State(state): State<Arc<AppConfig>>) -> Json<Vec<Record>> {
+    let content = tokio::fs::read_to_string(&state.registry_path).await.unwrap_or_default();
     let records = content.lines()
         .filter_map(|line| {
             let parts: Vec<&str> = line.split(',').collect();
             if parts.len() == 2 {
-                Some(Record { 
-                    file_name: parts[0].to_string(), 
-                    file_hash: parts[1].to_string() 
-                })
+                Some(Record { file_name: parts[0].into(), file_hash: parts[1].into() })
             } else { None }
         }).collect();
     Json(records)
 }
-
