@@ -9,7 +9,11 @@ edition = "2021"
 axum = { version = "0.7.9", features = ["multipart"] }
 tokio = { version = "1.36", features = ["full"] }
 tower-http = { version = "0.5.2", features = ["cors", "limit"] }
+ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
+rustls-pemfile = "2.2.0"
 
+[patch.crates-io] 
+ring = { git = "https://github.com/briansmith/ring", branch = "main" }
 # Environment & Serialization
 dotenvy = "0.15.7"
 serde = { version = "1.0", features = ["derive"] }
