@@ -22,13 +22,10 @@ hex = "0.4"
 # Blockchain with Rustls
 ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
 
-# We remove the direct 'ring' dependency from here to avoid redundancy
-# and let the [patch] handle it globally.
-
 [patch.crates-io]
-# FIXED: Pointing to GitHub provides a "different source" to resolve the conflict
-# This forces the entire dependency tree to use the secure 0.17.14 code.
-ring = { git = "https://github.com/briansmith/ring", tag = "0.17.14" }
+# FIXED: Using 'branch = "main"' ensures we find the source.
+# This satisfies the "different source" requirement and includes the AES fix.
+ring = { git = "https://github.com/briansmith/ring", branch = "main" }
 
 # Addressing the unmaintained warning for rustls-pemfile
 rustls-pemfile = { version = "2.1.0" }
