@@ -15,11 +15,10 @@ use ethers::prelude::*;
 use sha3::{Sha3_256, Digest};
 use dotenvy::dotenv;
 
-// Generate Rust bindings from the Solidity ABI
-// Ensure IntegrityLedger.json is in your project root
+// Generate Rust bindings from the updated Solidity ABI
 abigen!(VeriPhysContract, "./IntegrityLedger.json");
 
-/// Protocol Global State
+/// Protocol Global Shared State
 struct AppConfig {
     contract: VeriPhysContract<SignerMiddleware<Provider<Http>, LocalWallet>>,
     registry_path: String,
@@ -42,20 +41,20 @@ struct IntegrityResponse {
 
 #[tokio::main]
 async fn main() {
-    // 1. Initialize Secure Environment
+    // 1. Load Environment Securely
     dotenv().ok();
 
-    let rpc_url = std::env::var("RPC_URL").expect("RPC_URL missing");
+    let rpc_url = std::env::var("RPC_URL").expect("RPC_URL must be set");
     let contract_addr: Address = std::env::var("CONTRACT_ADDRESS")
-        .expect("CONTRACT_ADDRESS missing")
+        .expect("CONTRACT_ADDRESS must be set")
         .parse()
-        .expect("Invalid Address format");
-    let private_key = std::env::var("PRIVATE_KEY").expect("PRIVATE_KEY missing");
+        .expect("Invalid Contract Address format");
+    let private_key = std::env::var("PRIVATE_KEY").expect("PRIVATE_KEY must be set");
 
     let provider = Provider::<Http>::try_from(rpc_url)
-        .expect("Could not instantiate HTTP Provider");
+        .expect("Failed to connect to Blockchain Provider");
     
-    // Dynamic Chain ID detection to prevent replay protection errors
+    // Auto-detect Chain ID to prevent EIP-155 signature mismatches
     let chain_id = provider.get_chainid().await.unwrap_or(U256::from(1337)).as_u64();
     
     let wallet: LocalWallet = private_key.parse::<LocalWallet>()
@@ -70,12 +69,12 @@ async fn main() {
         total_requests: AtomicUsize::new(0),
     });
 
-    // 2. Protocol Router with Modern Middleware
+    // 2. Routing with Sentinel Security Layers
     let app = Router::new()
         .route("/v1/anchor", post(anchor_content))
         .route("/v1/registry", get(get_registry))
         .route("/v1/stats", get(get_stats))
-        // Security Layer: Prevent Large File Attacks (10MB Limit)
+        // DOS Protection: Limit file uploads to 10MB
         .layer(DefaultBodyLimit::max(10 * 1024 * 1024)) 
         .with_state(shared_state)
         .layer(tower_http::cors::CorsLayer::permissive());
@@ -83,8 +82,8 @@ async fn main() {
     let port = std::env::var("SERVER_PORT").unwrap_or_else(|_| "3000".to_string());
     let addr: SocketAddr = format!("0.0.0.0:{}", port).parse().unwrap();
 
-    println!("🛡️ VERIPHYS CORE: Infrastructure Online at {}", addr);
-    println!("⛓️ Connected to Chain ID: {}", chain_id);
+    println!("🛡️ VERIPHYS CORE: Engine active at {}", addr);
+    println!("⛓️ Blockchain: Connected to Chain ID {}", chain_id);
     
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -101,9 +100,9 @@ async fn anchor_content(
     let mut file_name = String::from("unknown");
     let mut content_data = Vec::new();
 
-    // Secure Multipart Extraction (Optimized for Axum 0.7)
+    // Secure Multipart Handling (Axum 0.7 Native)
     while let Some(field) = multipart.next_field().await
-        .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))? 
+        .map_err(|e| (StatusCode::BAD_REQUEST, format!("Multipart Error: {}", e)))? 
     {
         if field.name() == Some("file") {
             file_name = field.file_name().unwrap_or("unnamed").to_string();
@@ -114,31 +113,35 @@ async fn anchor_content(
     }
 
     if content_data.is_empty() {
-        return Err((StatusCode::BAD_REQUEST, "File is empty or missing".into()));
+        return Err((StatusCode::BAD_REQUEST, "Empty file rejected".into()));
     }
 
-    // 1. Digital Physics: SHA3-256 Hashing
+    // A. Digital Fingerprinting (SHA3-256)
     let hash_bytes: [u8; 32] = Sha3_256::digest(&content_data).into();
     let file_hash_hex = hex::encode(hash_bytes);
 
-    // 2. Blockchain Anchoring
-    // We send hash_bytes directly to the Solidity 'bytes32' input
+    // B. Blockchain Anchoring with Conflict Detection
     let tx = state.contract.anchor_content(hash_bytes);
     
-    let pending_tx = tx.send().await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Blockchain Send Error: {}", e)))?;
+    let pending_tx = tx.send().await.map_err(|e| {
+        if e.to_string().contains("HashAlreadyAnchored") {
+            (StatusCode::CONFLICT, "Conflict: Content already secured in the ledger.".into())
+        } else {
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Blockchain Send Error: {}", e))
+        }
+    })?;
 
     let receipt = pending_tx.await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Mining Error: {}", e)))?
-        .ok_or((StatusCode::INTERNAL_SERVER_ERROR, "Transaction dropped".to_string()))?;
+        .ok_or((StatusCode::INTERNAL_SERVER_ERROR, "Transaction failed to finalize".to_string()))?;
 
     let tx_hash = format!("{:?}", receipt.transaction_hash);
 
-    // 3. Local Audit Log
+    // C. Local Audit Trail
     let log_entry = format!("{},{}\n", file_name, file_hash_hex);
     let mut file = OpenOptions::new()
         .create(true).append(true).open(&state.registry_path).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("IO Error: {}", e)))?;
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Local Storage Error: {}", e)))?;
     
     file.write_all(log_entry.as_bytes()).await.ok();
 
@@ -146,7 +149,7 @@ async fn anchor_content(
         status: "Success".into(),
         content_hash: file_hash_hex,
         tx_hash,
-        message: "Fingerprint anchored to the distributed ledger.".into(),
+        message: "Fingerprint successfully anchored to the VeriPhys Ledger.".into(),
     }))
 }
 
@@ -165,8 +168,8 @@ async fn get_registry(State(state): State<Arc<AppConfig>>) -> Json<Vec<Record>> 
 async fn get_stats(State(state): State<Arc<AppConfig>>) -> Json<serde_json::Value> {
     Json(serde_json::json!({
         "total_anchors": state.total_requests.load(Ordering::SeqCst),
-        "protocol_version": "1.1.0",
-        "engine": "VeriPhys-Rust-Axum0.7",
+        "engine_version": "1.1.0",
+        "hashing_standard": "SHA3-256",
         "status": "Operational"
     }))
 }
