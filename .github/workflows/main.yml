@@ -1,0 +1,42 @@
+name: 🛡️ VeriPhys Core Security & CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-scan:
+    name: Build & Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout Private Repository
+      uses: actions/checkout@v4
+
+    - name: 🦀 Setup Rust Toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: 🔍 Run Cargo Audit (Vulnerability Check)
+      run: |
+        cargo install cargo-audit
+        cargo audit
+
+    - name: 🐳 Build VeriPhys Docker Image
+      run: |
+        docker build -t veriphys-core:latest .
+
+    - name: 🕵️ Scan Docker Image for Vulnerabilities (Trivy)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'veriphys-core:latest'
+        format: 'table'
+        exit-code: '1' # Fails the build if "High" vulnerabilities are found
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+
+    - name: ✅ Protocol Integrity Verified
+      if: success()
+      run: echo "VeriPhys Protocol passed all security and build checks."
