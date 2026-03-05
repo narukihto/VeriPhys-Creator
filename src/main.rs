@@ -6,6 +6,8 @@ use tokio::fs::OpenOptions;
 use tokio::io::AsyncWriteExt;
 use ethers::prelude::*;
 use sha3::{Sha3_256, Digest};
+// Swapped to maintained crate
+use dotenvy::dotenv; 
 
 // Generate Rust bindings from the corrected ABI
 abigen!(VeriPhysContract, "./IntegrityLedger.json");
@@ -32,33 +34,36 @@ struct IntegrityResponse {
 
 #[tokio::main]
 async fn main() {
-    dotenv::dotenv().ok(); [cite: 1]
+    // 1. Load environment using secure dotenvy
+    dotenv().ok(); 
 
-    // 1. Setup Blockchain Provider & Wallet once for efficiency
-    let rpc_url = std::env::var("RPC_URL").expect("RPC_URL must be set"); [cite: 1]
-    let contract_addr: Address = std::env::var("CONTRACT_ADDRESS").expect("ADDR missing").parse().expect("Invalid Addr"); [cite: 1]
-    let private_key = std::env::var("PRIVATE_KEY").expect("KEY missing"); [cite: 2]
+    // Setup Blockchain Provider & Wallet
+    let rpc_url = std::env::var("RPC_URL").expect("RPC_URL must be set"); 
+    let contract_addr: Address = std::env::var("CONTRACT_ADDRESS").expect("ADDR missing").parse().expect("Invalid Addr"); 
+    let private_key = std::env::var("PRIVATE_KEY").expect("KEY missing"); 
     
     let provider = Provider::<Http>::try_from(rpc_url).unwrap();
+    // Defaulting to local network (Anvil/Hardhat)
     let wallet: LocalWallet = private_key.parse::<LocalWallet>().unwrap().with_chain_id(1337u64);
     let client = Arc::new(SignerMiddleware::new(provider, wallet));
     
     let shared_state = Arc::new(AppConfig {
         contract: VeriPhysContract::new(contract_addr, client),
-        registry_path: std::env::var("REGISTRY_PATH").unwrap_or_else(|_| "registry.txt".to_string()), [cite: 1]
+        registry_path: std::env::var("REGISTRY_PATH").unwrap_or_else(|_| "registry.txt".to_string()), 
     });
 
-    // 2. Build Router with State
+    // 2. Build Router with State and standard CORS
     let app = Router::new()
         .route("/v1/anchor", post(anchor_content))
         .route("/v1/registry", get(get_registry))
         .with_state(shared_state)
         .layer(tower_http::cors::CorsLayer::permissive());
 
-    let port = std::env::var("SERVER_PORT").unwrap_or_else(|_| "3000".to_string()); [cite: 1]
-    let addr: SocketAddr = format!("127.0.0.1:{}", port).parse().unwrap();
+    let port = std::env::var("SERVER_PORT").unwrap_or_else(|_| "3000".to_string()); 
+    let addr: SocketAddr = format!("0.0.0.0:{}", port).parse().unwrap();
     
     println!("🛡️ VERIPHYS CORE: System Consistency 100%. Listening on {}", addr);
+    
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
@@ -78,13 +83,17 @@ async fn anchor_content(
         }
     }
 
-    // 1. SHA3-256 Fingerprinting
+    if content_data.is_empty() {
+        return Err("No file content received".into());
+    }
+
+    // 1. SHA3-256 Fingerprinting (FIPS 202)
     let hash_bytes: [u8; 32] = Sha3_256::digest(&content_data).into();
     let file_hash_hex = hex::encode(hash_bytes);
 
-    // 2. Direct On-Chain Anchoring (Fixed: No Hex-String conversion needed for bytes32)
+    // 2. Direct On-Chain Anchoring
     let tx_receipt = state.contract
-        .anchor_content(hash_bytes) // Matches bytes32 in Solidity
+        .anchor_content(hash_bytes) 
         .send()
         .await
         .map_err(|e| format!("Blockchain Submission Error: {}", e))?
@@ -96,7 +105,7 @@ async fn anchor_content(
         None => return Err("Transaction failed on-chain".into()),
     };
 
-    // 3. Non-blocking Local Logging
+    // 3. Persistent Local Registry Log
     let log_entry = format!("{},{}\n", file_name, file_hash_hex);
     let mut file = OpenOptions::new()
         .create(true).append(true).open(&state.registry_path).await
