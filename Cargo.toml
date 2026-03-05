@@ -5,28 +5,28 @@ authors = ["narukihto"]
 edition = "2021"
 
 [dependencies]
-# Modern Async & Web
+# Modern Async & Web stack
 axum = { version = "0.7.9", features = ["multipart"] }
 tokio = { version = "1.36", features = ["full"] }
 tower-http = { version = "0.5.2", features = ["cors", "limit"] }
 
-# Security & Environment
+# Environment & Serialization
 dotenvy = "0.15.7"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
-# Cryptography (FIPS 202 Standards)
+# Cryptography (FIPS 202)
 sha3 = "0.10.8"
 hex = "0.4"
 
-# Blockchain - Forced to use rustls to avoid native-tls/openssl conflicts
+# Blockchain with Rustls to avoid native-tls/ring conflicts
 ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
 
-# Explicitly pull the safe version of ring
+# Patching the vulnerability
 ring = "0.17.12"
 
 [patch.crates-io]
-# This is the "Magic Fix": It forces every crate in your tree to use 0.17.12
+# Forces the entire dependency tree to use the safe version of ring
 ring = { git = "https://github.com/briansmith/ring", tag = "0.17.12" }
 
 [profile.release]
