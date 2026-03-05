@@ -1,10 +1,11 @@
 🛡️ VeriPhys Protocol Core (v1.0.0)
-The Gold Standard for Content Authenticity in the AI Era. VeriPhys is a high-performance protocol designed to combat Deepfakes and misinformation by bridging Digital Physics with Blockchain Technology. Built with Rust for near-zero latency and military-grade memory safety.
+The Industrial Standard for Digital Content Authenticity & Deepfake Defense
+VeriPhys is a high-performance, military-grade protocol designed to bridge Digital Physics with Blockchain Immutability. By utilizing a specialized Rust-based hashing engine, it creates a permanent "Physical Anchor" for digital assets, making them immune to unauthorized manipulation and AI-generated fraud.
 
 Status: Final - Protocol Infrastructure Complete
 
-🚀 Overview
-In the age of Generative AI, distinguishing truth from fabrication is a global challenge. VeriPhys provides a definitive solution through:
+🚀 Protocol Overview
+In the age of Generative AI, truth is a high-value commodity. VeriPhys secures it through:
 
 Physical Hashing: Generating a unique, non-reproducible fingerprint using SHA3-256 (Quantum-resistant) for every bit of the content.
 
@@ -26,33 +27,34 @@ Hybrid Architecture: Seamless synchronization between REST API, Local Registry, 
 Cyber-Protocol UI: A futuristic, interactive dashboard for drag-and-drop asset validation.
 
 🛠️ Tech Stack
-Layer	Technology
-Backend	Rust (Axum, Tokio, Ethers-rs)
-Blockchain	Solidity (^0.8.20)
-Hashing	SHA3-256 (Keccak-based)
-Frontend	HTML5 / JavaScript / CSS3 (Quantum UI)
-DevOps	Docker / GitHub Actions
+Layer	Technology	Function
+Backend Engine	Rust (Axum, Tokio, Ethers-rs)	High-speed binary processing & Cryptography
+Blockchain	Solidity (^0.8.20)	Immutable global state & Timestamping
+Hashing	SHA3-256 (Keccak-based)	FIPS 202 Physical Integrity Proof
+Frontend UI	HTML5 / JS (Quantum UI)	User dashboard & Certificate generation
+DevOps	Docker / GitHub Actions	One-click deployment & Scalability
 
-التصدير إلى "جداول بيانات Google"
 
-🏗️ Protocol Workflow
+📊 Protocol Workflow & Integrity
+The protocol ensures absolute data integrity by satisfying the following cryptographic proof:
+
+H(M)=S
 Capture: File is uploaded via the Multipart API.
 
-Processing: The Rust engine streams the file to calculate the SHA3-256 fingerprint.
+Processing: The Rust engine streams the file to calculate the SHA3-256 fingerprint (
+H
+).
 
-Anchoring: The hash is broadcast to the VeriPhys Smart Contract for permanent ledger storage.
+Anchoring: The hash (
+S
+) is broadcast to the VeriPhys Smart Contract for permanent ledger storage.
 
-Verification: Third parties can re-hash any file to match it against the global ledger for instant authenticity proof.
+Verification: Third parties re-hash any file to match it against the global ledger for instant authenticity proof.
 
 🛠️ Execution Guide (Quick Start)
-1. Prerequisites
-Rust: Latest stable version & Cargo.
+1. Smart Contract Deployment
+Deploy the VeriPhysLedger contract to your preferred network (Hardhat/Anvil/Sepolia):
 
-Node.js & npm: For contract deployment and testing.
-
-Ethereum Node: Anvil (Foundry) or Hardhat for local development.
-
-2. Smart Contract Deployment
 Bash
 
 # Install dependencies
@@ -65,35 +67,51 @@ npx hardhat node
 npx hardhat run scripts/deploy.js --network localhost
 Note: Save the generated CONTRACT_ADDRESS.
 
-3. Environment Configuration (.env)
-Create a .env file in the root directory:
+2. Environment Configuration (.env)
+Create a .env file in the root directory. Keep these credentials private.
 
-مقتطف الرمز
+
 
 SERVER_PORT=3000
 REGISTRY_PATH=registry.txt
 RPC_URL=http://127.0.0.1:8545
 CONTRACT_ADDRESS=0xYourContractAddressHere
 PRIVATE_KEY=0xYourLocalPrivateKey
-4. Launching the Rust Engine
+3. Launching the Protocol
+Run the Rust engine with maximum compiler optimizations:
+
 Bash
 
 # Build and run with max optimization
 cargo run --release
+Access the dashboard by opening index.html in your browser.
+
 📂 Project Resources
 Technical Whitepaper: Located in /docs/Technical-Whitepaper.pdf (Mathematical foundations & use cases).
 
-UI Dashboard: Open index.html in any browser for the interactive drag-and-drop interface.
+UI Dashboard: Integrated drag-and-drop interface for end-users.
 
 Integrity Tests: Run cargo test to verify cryptographic and connection consistency.
 
-📄 VeriPhys Protocol - Proprietary License
-Copyright (c) 2026 [Yatoshingami] - ALL RIGHTS RESERVED.
+📄 VeriPhys Protocol - Proprietary License (PRIVATE)
+Copyright (c) 2026 [narukihto] - ALL RIGHTS RESERVED.
 
-Grant of License: This license is granted strictly to the Authorized Purchaser.
+[!CAUTION]
+STRICTLY PRIVATE: This software is protected by a Proprietary License.
 
-Restrictions: No part of this software may be reproduced, redistributed, or sold to third parties without written consent. The purchaser may not make this repository public.
+Non-Disclosure: Unauthorized reproduction, redistribution, or public display of this source code is strictly prohibited.
 
-Usage: The purchaser has the right to use, modify, and deploy the software for commercial or private operations.
+Private Repository: This repository must remain PRIVATE. Making this code public will void the security warranty.
 
-No Warranty: The software is provided "as is", without warranty of any kind.
+Authorized Use Only: License is granted strictly to the Authorized Purchaser for private or commercial operations.
+
+No Warranty: The software is provided "as is", without warranty of any kind.                                               🌟 Project Status
+[x] Rust Hashing Engine (SHA3-256)
+
+[x] Solidity Ledger v1.0
+
+[x] Cyberpunk Interactive UI
+
+[x] Dockerization Complete
+
+[ ] Mobile App Integration (Phase 2)
