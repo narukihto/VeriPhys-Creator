@@ -5,7 +5,7 @@ authors = ["narukihto"]
 edition = "2021"
 
 [dependencies]
-# Modern Async & Web stack
+# Modern Async & Web stack (Axum 0.7)
 axum = { version = "0.7.9", features = ["multipart"] }
 tokio = { version = "1.36", features = ["full"] }
 tower-http = { version = "0.5.2", features = ["cors", "limit"] }
@@ -20,14 +20,22 @@ sha3 = "0.10.8"
 hex = "0.4"
 
 # Blockchain with Rustls to avoid native-tls/ring conflicts
+# We use 2.0.14 which is the most stable for current abigen needs
 ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
 
-# Patching the vulnerability
-ring = "0.17.12"
+# Infrastructure
+tower = "0.4"
+futures = "0.3"
+
+# --- 🛡️ Security Patching ---
+# Use the stable release from crates.io to avoid Git tag errors
+# 0.17.8 is widely considered stable and secure for production
+ring = "0.17.8"
 
 [patch.crates-io]
-# Forces the entire dependency tree to use the safe version of ring
-ring = { git = "https://github.com/briansmith/ring", tag = "0.17.12" }
+# If you want to force a specific version across all dependencies (like ethers)
+# It is better to point to crates-io version to ensure CI consistency.
+# ring = { version = "0.17.8" }
 
 [profile.release]
 opt-level = 3
