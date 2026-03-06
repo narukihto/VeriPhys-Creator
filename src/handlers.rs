@@ -40,16 +40,31 @@ pub async fn anchor_content(
     let hash_bytes: [u8; 32] = Sha3_256::digest(&content_data).into();
     let file_hash_hex = hex::encode(hash_bytes);
 
-    // Submit to Smart Contract
-    let tx = state.contract.anchor_content(hash_bytes).send().await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    // --- FIX FOR E0716 ---
+    // We split the call to ensure the temporary contract call object 
+    // lives long enough for the async operations to complete.
     
-    let receipt = tx.await.map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-        .ok_or((StatusCode::INTERNAL_SERVER_ERROR, "TX Failed".to_string()))?;
+    let pending_tx = state.contract
+        .anchor_content(hash_bytes)
+        .send()
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Blockchain Send Error: {}", e)))?;
+    
+    // Now we await the receipt from the pending transaction
+    let receipt = pending_tx
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Mining Error: {}", e)))?
+        .ok_or((StatusCode::INTERNAL_SERVER_ERROR, "Transaction failed to mine".to_string()))?;
 
-    // Audit Log
+    // Audit Log (Local Registry)
     let log = format!("{},{}\n", file_name, file_hash_hex);
-    let mut file = tokio::fs::OpenOptions::new().create(true).append(true).open(&state.registry_path).await.unwrap();
+    let mut file = tokio::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&state.registry_path)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        
     file.write_all(log.as_bytes()).await.ok();
 
     Ok(Json(IntegrityResponse {
