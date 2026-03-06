@@ -17,6 +17,6 @@ ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
 rustls-pemfile = "2.2.0"
 
 [patch.crates-io]
-# This forces every dependency to use the secure ring version
-"ring:0.16.20" = { git = "https://github.com/briansmith/ring", branch = "main" }
-"rustls-pemfile:1.0.4" = { version = "2.2.0" }
+# Correct way to patch: Use the name only, without versions in the string
+ring = { git = "https://github.com/briansmith/ring", branch = "main" }
+rustls-pemfile = { version = "2.2.0" }
