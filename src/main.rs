@@ -8,8 +8,6 @@ use std::net::SocketAddr;
 use ethers::prelude::*;
 use dotenvy::dotenv;
 
-// --- FIXED: Do NOT use 'mod handlers;' here ---
-// We import everything through the library name 'veriphys_protocol_core'
 use veriphys_protocol_core::{AppState, handlers as h};
 
 #[tokio::main]
