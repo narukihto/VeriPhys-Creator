@@ -2,7 +2,7 @@
 name = "veriphys-protocol-core"
 version = "1.0.0"
 authors = ["narukihto"]
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 # Modern Async & Web stack
