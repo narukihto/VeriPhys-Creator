@@ -10,8 +10,7 @@ use ethers::prelude::*;
 use sha3::{Sha3_256, Digest};
 use tokio::io::AsyncWriteExt;
 
-// Import shared types from lib.rs
-use crate::{AppState, Record, IntegrityResponse};
+use super::{AppState, Record, IntegrityResponse};
 
 // Generate blockchain bindings from ABI
 abigen!(VeriPhysContract, "./IntegrityLedger.json");
