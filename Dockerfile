@@ -1,11 +1,13 @@
 # --- Stage 1: Plan Stage ---
-# We use Nightly to support Edition 2024 required by modern dependencies
 FROM rustlang/rust:nightly-bookworm-slim AS planner
 WORKDIR /app
-# Install a specific version of cargo-chef to avoid build breakages
+# تثبيت نسخة مستقرة ومعروفة من cargo-chef
 RUN cargo install cargo-chef --version 0.1.67
+# نسخ ملفات التوصيف فقط أولاً لضمان عزل الاعتمادات
 COPY Cargo.toml Cargo.lock ./
-COPY . .
+# نسخ الكود المصدري (مهم جداً لعملية prepare)
+COPY src ./src
+# تنفيذ التخطيط مع تجاهل الملفات غير الضرورية
 RUN cargo chef prepare --recipe-json recipe.json
 
 # --- Stage 2: Build Stage ---
@@ -14,17 +16,17 @@ WORKDIR /app
 RUN cargo install cargo-chef --version 0.1.67
 COPY --from=planner /app/recipe.json recipe.json
 
-# Install essential system dependencies for encryption
+# تثبيت مكتبات النظام اللازمة للربط (Linking)
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Cache dependencies independently
+# بناء المكتبات الخارجية فقط (Caching Layer)
 RUN cargo chef cook --release --recipe-json recipe.json
 
-# Build the actual project
+# الآن نسخ باقي ملفات المشروع لبناء التطبيق النهائي
 COPY IntegrityLedger.json . 
 COPY . .
 RUN cargo build --release
@@ -38,19 +40,12 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the binary from builder
 COPY --from=builder /app/target/release/veriphys-protocol-core ./veriphys-engine
 COPY --from=builder /app/IntegrityLedger.json ./IntegrityLedger.json
 
-# Initialize registry file
 RUN touch registry.txt
-
-EXPOSE 3000
-ENV RUST_LOG=info
-
-# Create non-root user for security
-RUN useradd -ms /bin/bash veriphysuser && \
-    chown -R veriphysuser:veriphysuser /app
+RUN useradd -ms /bin/bash veriphysuser && chown -R veriphysuser:veriphysuser /app
 USER veriphysuser
 
+EXPOSE 3000
 CMD ["./veriphys-engine"]
