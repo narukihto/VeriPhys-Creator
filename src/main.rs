@@ -8,8 +8,8 @@ use std::net::SocketAddr;
 use ethers::prelude::*;
 use dotenvy::dotenv;
 
-// Import from our own library modules
-mod handlers;
+// --- FIXED: Do NOT use 'mod handlers;' here ---
+// We import everything through the library name 'veriphys_protocol_core'
 use veriphys_protocol_core::{AppState, handlers as h};
 
 #[tokio::main]
@@ -25,13 +25,15 @@ async fn main() {
     let private_key = std::env::var("PRIVATE_KEY").expect("PRIVATE_KEY must be set");
 
     let provider = Provider::<Http>::try_from(rpc_url).expect("Failed to connect to RPC");
+    
+    // Dynamically get Chain ID or default to Anvil (31337)
     let wallet: LocalWallet = private_key.parse::<LocalWallet>()
         .expect("Invalid Private Key")
-        .with_chain_id(31337u64); // Change to your Chain ID (e.g., 11155111 for Sepolia)
+        .with_chain_id(31337u64); 
 
     let client = Arc::new(SignerMiddleware::new(provider, wallet));
     
-    // Initialize Contract Binding
+    // Initialize Contract Binding from the handlers module re-exported by your lib
     let contract = h::VeriPhysContract::new(contract_addr, client);
 
     // 2. Initialize Shared State
