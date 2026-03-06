@@ -5,18 +5,25 @@ authors = ["narukihto"]
 edition = "2021"
 
 [dependencies]
+# Modern Async & Web stack
 axum = { version = "0.7.9", features = ["multipart"] }
 tokio = { version = "1.36", features = ["full"] }
 tower-http = { version = "0.5.2", features = ["cors", "limit"] }
+
+# Environment & Serialization
 dotenvy = "0.15.7"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+# Cryptography
 sha3 = "0.10.8"
 hex = "0.4"
+
+# Blockchain with Rustls
+# Note: We use version 2.2.0 directly here to satisfy the security requirement
 ethers = { version = "2.0.14", features = ["rustls", "abigen", "ws"] }
-rustls-pemfile = "2.2.0"
+rustls-pemfile = "2.2.0" 
 
 [patch.crates-io]
-# Correct way to patch: Use the name only, without versions in the string
+# This points to a DIFFERENT source (GitHub), which is allowed and fixes the 'ring' vulnerability
 ring = { git = "https://github.com/briansmith/ring", branch = "main" }
-rustls-pemfile = { version = "2.2.0" }
