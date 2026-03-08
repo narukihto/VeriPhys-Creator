@@ -65,12 +65,10 @@ Status: Predictive Modeling (Phase 3)
 The Logic: A proactive IDS/IPS engine utilizing Spacetime-Pattern Analysis. It predicts and neutralizes cyber-attacks before they breach the perimeter by "debugging the temporal past" of the incoming data flux.
 🚀 Acquisition Note for VCs & YZi Labs:
 These upcoming modules are part of a high-valuation technological exit. The Quantum-Fortress and VeriPhys engines are designed to integrate seamlessly with this future ecosystem. For strategic licensing or early-stage acquisition of the Spacetime Suite, contact the Lead Architect at Issaclex@proton.me.
-📄 VeriPhys Protocol - Proprietary License (PRIVATE)
-Copyright (c) 2026 [narukihto] - ALL RIGHTS RESERVED.
-
-[!CAUTION]
-STRICTLY PRIVATE: This software is protected by a Proprietary License. Unauthorized redistribution or public exposure of this source code will void the security warranty and violate the license agreement.
-
+📜 License & Commercial Acquisition Terms
+Open Source Protocol (Non-Commercial) This project is officially licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). The AGPL-3.0 Obligation: If you modify or integrate this software into a cloud service (SaaS), you are legally mandated to release your entire source code to the public. This ensures the "Spacetime Integrity" of the open-source community remains unbroken.
+Commercial Licensing & Intellectual Property (IP) Acquisition 💎 The AGPL-3.0 is a "Strong Copyleft" license. Organizations (Exchanges, Banks, FinTech, or VCs) wishing to: Integrate Quantum-Fortress/VeriPhys into proprietary, closed-source ecosystems. Avoid the public disclosure requirements of the AGPL-3.0. Acquire Full Ownership of the source code and the underlying Spacetime Logic (IP Acquisition). Request White-labeling or dedicated architectural support. Must obtain a Private Commercial License.
+Strategic Exit & Technology Buyout 🚀 As the Lead Architect, I am open to discussions regarding the Full Technology Acquisition of the Spacetime Security Suite (Quantum-Fortress v1.0.0 & VeriPhys-Creator v1.0.0). Our engines are Production-Ready, Rust-Hardened, and Audit-Verified. We offer a 12-month head-start over any current in-house R&D efforts in the PQC space. 📧 Acquisition Inquiry: [Issaclex@proton.me] Founder: [narukihto - The First Architect]
 🌟 Project Roadmap
 [x] Rust Hashing Engine (SHA3-256)
 
